@@ -112,7 +112,7 @@
     //
     // Video output
     //
-    self.videoOutput = [AVAssetReaderVideoCompositionOutput assetReaderVideoCompositionOutputWithVideoTracks:videoTracks videoSettings:nil];
+    self.videoOutput = [AVAssetReaderVideoCompositionOutput assetReaderVideoCompositionOutputWithVideoTracks:videoTracks videoSettings:self.videoInputSettings];
     self.videoOutput.alwaysCopiesSampleData = NO;
     if (self.videoComposition)
     {
@@ -222,31 +222,31 @@
 {
     while (input.isReadyForMoreMediaData)
     {
+        BOOL handled = NO;
+        BOOL error = NO;
+
+        if (self.reader.status != AVAssetReaderStatusReading || self.writer.status != AVAssetWriterStatusWriting)
+        {
+            handled = YES;
+            error = YES;
+        }
+
         CMSampleBufferRef sampleBuffer = [output copyNextSampleBuffer];
         if (sampleBuffer)
         {
-            BOOL handled = NO;
-            BOOL error = NO;
-
-            if (self.reader.status != AVAssetReaderStatusReading || self.writer.status != AVAssetWriterStatusWriting)
-            {
-                handled = YES;
-                error = YES;
-            }
 
             if (!handled && self.videoOutput == output)
             {
                 lastSamplePresentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
                 self.progress = duration == 0 ? 1 : CMTimeGetSeconds(lastSamplePresentationTime) / duration;
-
                 if ([self.delegate respondsToSelector:@selector(exportSession:renderFrame:withPresentationTime:toBuffer:)])
                 {
                     CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)CMSampleBufferGetImageBuffer(sampleBuffer);
                     CVPixelBufferRef renderBuffer = NULL;
                     CVPixelBufferPoolCreatePixelBuffer(NULL, self.videoPixelBufferAdaptor.pixelBufferPool, &renderBuffer);
-                    CVPixelBufferLockBaseAddress(renderBuffer, 0);
+                    
                     [self.delegate exportSession:self renderFrame:pixelBuffer withPresentationTime:lastSamplePresentationTime toBuffer:renderBuffer];
-                    CVPixelBufferUnlockBaseAddress(renderBuffer, 0);
+
                     if (![self.videoPixelBufferAdaptor appendPixelBuffer:renderBuffer withPresentationTime:lastSamplePresentationTime])
                     {
                         error = YES;
