@@ -256,7 +256,7 @@
 				}
 				else 
 				{
-					lastSamplePresentationTime = aLastSamplePresentationTime
+					lastSamplePresentationTime = aLastSamplePresentationTime;
 					self.progress = duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / duration;
 
 					if ([self.delegate respondsToSelector:@selector(exportSession:renderFrame:withPresentationTime:toBuffer:)])
