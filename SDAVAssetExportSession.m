@@ -247,24 +247,25 @@
             if (!handled && self.videoOutput == output)
             {
                 // update the video progress
-                lastSamplePresentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+                CMTime aLastSamplePresentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
 				
-				if (CMTIME_IS_INVALID(lastSamplePresentationTime))
+				if (CMTIME_IS_INVALID(aLastSamplePresentationTime))
 				{
 					handled = YES;
 					error = YES;
 				}
 				else 
 				{
-					self.progress = duration == 0 ? 1 : CMTimeGetSeconds(lastSamplePresentationTime) / duration;
+					self.lastSamplePresentationTime = aLastSamplePresentationTime
+					self.progress = duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / duration;
 
 					if ([self.delegate respondsToSelector:@selector(exportSession:renderFrame:withPresentationTime:toBuffer:)])
 					{
 						CVPixelBufferRef pixelBuffer = (CVPixelBufferRef)CMSampleBufferGetImageBuffer(sampleBuffer);
 						CVPixelBufferRef renderBuffer = NULL;
 						CVPixelBufferPoolCreatePixelBuffer(NULL, self.videoPixelBufferAdaptor.pixelBufferPool, &renderBuffer);
-						[self.delegate exportSession:self renderFrame:pixelBuffer withPresentationTime:lastSamplePresentationTime toBuffer:renderBuffer];
-						if (![self.videoPixelBufferAdaptor appendPixelBuffer:renderBuffer withPresentationTime:lastSamplePresentationTime])
+						[self.delegate exportSession:self renderFrame:pixelBuffer withPresentationTime:aLastSamplePresentationTime toBuffer:renderBuffer];
+						if (![self.videoPixelBufferAdaptor appendPixelBuffer:renderBuffer withPresentationTime:aLastSamplePresentationTime])
 						{
 							error = YES;
 						}
@@ -380,7 +381,7 @@
     }
     else
     {
-        [self.writer endSessionAtSourceTime:lastSamplePresentationTime];
+        [self.writer endSessionAtSourceTime:self.lastSamplePresentationTime];
         [self.writer finishWritingWithCompletionHandler:^
         {
             [self complete];
