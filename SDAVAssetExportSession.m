@@ -60,7 +60,7 @@
 
     if (!self.outputURL)
     {
-        _error = [NSError errorWithDomain:AVFoundationErrorDomain code:AVErrorExportFailed userInfo:@
+        self._error = [NSError errorWithDomain:AVFoundationErrorDomain code:AVErrorExportFailed userInfo:@
         {
             NSLocalizedDescriptionKey: @"Output URL not set"
         }];
@@ -72,7 +72,7 @@
     self.reader = [AVAssetReader.alloc initWithAsset:self.asset error:&readerError];
     if (readerError)
     {
-        _error = readerError;
+        self._error = readerError;
         handler();
         return;
     }
@@ -81,7 +81,7 @@
     self.writer = [AVAssetWriter assetWriterWithURL:self.outputURL fileType:self.outputFileType error:&writerError];
     if (writerError)
     {
-        _error = writerError;
+        self._error = writerError;
         handler();
         return;
     }
@@ -103,11 +103,11 @@
 
     if (CMTIME_IS_VALID(self.timeRange.duration) && !CMTIME_IS_POSITIVE_INFINITY(self.timeRange.duration))
     {
-        duration = CMTimeGetSeconds(self.timeRange.duration);
+        self.duration = CMTimeGetSeconds(self.timeRange.duration);
     }
     else
     {
-        duration = CMTimeGetSeconds(self.asset.duration);
+        self.duration = CMTimeGetSeconds(self.asset.duration);
     }
     //
     // Video output
@@ -257,7 +257,7 @@
 				else 
 				{
 					self.lastSamplePresentationTime = aLastSamplePresentationTime
-					self.progress = duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / duration;
+					self.progress = self.duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / self.duration;
 
 					if ([self.delegate respondsToSelector:@selector(exportSession:renderFrame:withPresentationTime:toBuffer:)])
 					{
@@ -405,9 +405,9 @@
 
 - (NSError *)error
 {
-    if (_error)
+    if (self._error)
     {
-        return _error;
+        return self._error;
     }
     else
     {
@@ -449,7 +449,7 @@
 
 - (void)reset
 {
-    _error = nil;
+    self._error = nil;
     self.progress = 0;
     self.reader = nil;
     self.videoOutput = nil;
