@@ -60,7 +60,7 @@
 
     if (!self.outputURL)
     {
-        self._error = [NSError errorWithDomain:AVFoundationErrorDomain code:AVErrorExportFailed userInfo:@
+        _error = [NSError errorWithDomain:AVFoundationErrorDomain code:AVErrorExportFailed userInfo:@
         {
             NSLocalizedDescriptionKey: @"Output URL not set"
         }];
@@ -72,7 +72,7 @@
     self.reader = [AVAssetReader.alloc initWithAsset:self.asset error:&readerError];
     if (readerError)
     {
-        self._error = readerError;
+        _error = readerError;
         handler();
         return;
     }
@@ -81,7 +81,7 @@
     self.writer = [AVAssetWriter assetWriterWithURL:self.outputURL fileType:self.outputFileType error:&writerError];
     if (writerError)
     {
-        self._error = writerError;
+        _error = writerError;
         handler();
         return;
     }
@@ -103,11 +103,11 @@
 
     if (CMTIME_IS_VALID(self.timeRange.duration) && !CMTIME_IS_POSITIVE_INFINITY(self.timeRange.duration))
     {
-        self.duration = CMTimeGetSeconds(self.timeRange.duration);
+        duration = CMTimeGetSeconds(self.timeRange.duration);
     }
     else
     {
-        self.duration = CMTimeGetSeconds(self.asset.duration);
+        duration = CMTimeGetSeconds(self.asset.duration);
     }
     //
     // Video output
@@ -256,8 +256,8 @@
 				}
 				else 
 				{
-					self.lastSamplePresentationTime = aLastSamplePresentationTime
-					self.progress = self.duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / self.duration;
+					lastSamplePresentationTime = aLastSamplePresentationTime
+					self.progress = duration == 0 ? 1 : CMTimeGetSeconds(aLastSamplePresentationTime) / duration;
 
 					if ([self.delegate respondsToSelector:@selector(exportSession:renderFrame:withPresentationTime:toBuffer:)])
 					{
@@ -381,7 +381,7 @@
     }
     else
     {
-        [self.writer endSessionAtSourceTime:self.lastSamplePresentationTime];
+        [self.writer endSessionAtSourceTime:lastSamplePresentationTime];
         [self.writer finishWritingWithCompletionHandler:^
         {
             [self complete];
@@ -405,9 +405,9 @@
 
 - (NSError *)error
 {
-    if (self._error)
+    if (_error)
     {
-        return self._error;
+        return _error;
     }
     else
     {
@@ -449,7 +449,7 @@
 
 - (void)reset
 {
-    self._error = nil;
+    _error = nil;
     self.progress = 0;
     self.reader = nil;
     self.videoOutput = nil;
