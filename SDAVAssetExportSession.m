@@ -381,7 +381,6 @@
     }
     else
     {
-        [self.writer endSessionAtSourceTime:lastSamplePresentationTime];
         [self.writer finishWritingWithCompletionHandler:^
         {
             [self complete];
